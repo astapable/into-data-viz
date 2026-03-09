@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <!-- Load D3.js library from CDN -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        
+        
+        const data = [
+  { type: "apple", quantity: 5 },
+  { type: "banana", quantity: 3 },
+  { type: "apple", quantity: 2 },
+  { type: "orange", quantity: 4 }
+];
+
+// Logic:
+// 1. Start with 0.
+// 2. When grouping by 'type', count how many items are in that bucket.
+// 3. Use 'type' as the key.
+const rollupObj = d3.rollup(
+  data, 
+  v => v.length, // The reducer: return the length of the array (v)
+  d => d.type     // The key: group by the 'type' property
+);
+
+console.log(rollupObj);
+
+
+    </script>
+</body>
+</html>

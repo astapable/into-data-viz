@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daniel - Intro to Web Development</title>
+    <style>
+        /* Basic styling following workshop best practices */
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+        }
+        main {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        section {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+        code {
+            background: #eee;
+            color: #d63384; /* Distinct color for inline code */
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        pre {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 5px;
+            line-height: 1.4;
+        }
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Hello, I'm Daniel</h1>
+        <p>Welcome to my first web project!</p>
+    </header>
+
+    <main>
+        <!-- HTML Section (Week 1 Focus) -->
+        <section id="about">
+            <h2>About This Page</h2>
+            <p>This page demonstrates the <strong>foundations</strong> of web development using <em>semantic HTML</em> and <em>JavaScript</em>.</p>
+            <ul>
+                <li>HTML provides the <strong>structure</strong>.</li>
+                <li>CSS provides the <strong>presentation</strong>.</li>
+                <li>JavaScript provides the <strong>interactivity</strong>.</li>
+            </ul>
+        </section>
+
+        <!-- JavaScript Section (Week 2 Focus) -->
+        <section id="js-playground">
+            <h2>JavaScript Playground</h2>
+            <p>Open the browser's <strong>Console</strong> (Right-click -> Inspect -> Console) to see the code execution.</p>
+            <p>We are using <code>console.log()</code> to see output, and <code>let/const</code> for variables.</p>
+            
+            <pre><code>
+// Examples being run:
+const myName = "Daniel";
+let learningProgress = "Started";
+console.log("Hello from " + myName);
+            </code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Daniel - Built for the Parsons Data Viz Workshop</p>
+    </footer>
+
+    <script>
+        // Best Practice: Variables and Console output
+        const userName = "Daniel";
+        let workshopWeek = 1;
+        
+        console.log("--- Welcome to the Workshop ---");
+        console.log("Student Name:", userName);
+        console.log("Current Status: Learning HTML and JS fundamentals.");
+
+        // Simple Math Example
+        let sum = 10 + 5;
+        console.log("Simple Math (10 + 5):", sum);
+
+        // Simple Array Example (from week 2 techniques)
+        const topics = ["HTML", "CSS", "JavaScript"];
+        console.log("Topics we are covering:", topics);
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>D3.js Minimalist Clock</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .clock-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .clock-face {
+      fill: #f5f5f5;
+      stroke: #333;
+      stroke-width: 2px;
+    }
+    .time-marker {
+      fill: #4285f4;
+      transition: all 0.5s ease;
+    }
+    .time-text {
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock-container">
+    <svg id="clock" width="300" height="300"></svg>
+  </div>
+
+  <script>
+    // Set up the SVG container
+    const svg = d3.select("#clock");
+    const width = 300;
+    const height = 300;
+    const radius = Math.min(width, height) / 2 - 10;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Create the clock face
+    svg.append("circle")
+      .attr("cx", centerX)
+      .attr("cy", centerY)
+      .attr("r", radius)
+      .attr("class", "clock-face");
+
+    // Create a group for the time marker
+    const timeMarker = svg.append("g")
+      .attr("transform", `translate(${centerX}, ${centerY})`);
+
+    // Add the time marker circle
+    timeMarker.append("circle")
+      .attr("class", "time-marker")
+      .attr("r", 8);
+
+    // Add text for displaying time
+    const timeText = svg.append("text")
+      .attr("x", centerX)
+      .attr("y", centerY + radius / 2)
+      .attr("class", "time-text");
+
+    // Function to update the clock
+    function updateClock() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const minutes = now.getMinutes();
+      const hours = now.getHours();
+      
+      // Calculate the position for the time marker
+      // We're using seconds to position the marker around the clock
+      const angle = (seconds / 60) * 2 * Math.PI - Math.PI / 2;
+      const x = Math.cos(angle) * (radius * 0.8);
+      const y = Math.sin(angle) * (radius * 0.8);
+      
+      // Update the time marker position
+      timeMarker.attr("transform", `translate(${centerX + x}, ${centerY + y})`);
+      
+      // Update the time text
+      timeText.text(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    }
+
+    // Initial update
+    updateClock();
+    
+    // Set interval to update the clock every second
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>

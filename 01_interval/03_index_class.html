@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>D3.js Minimal Clock</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .time-circle {
+      transition: r 1s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock-container">
+    <svg id="clock"></svg>
+  </div>
+
+  <script>
+    // Set up the SVG container
+    const svg = d3.select("#clock");
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    svg.attr("width", width).attr("height", height);
+    
+    const radius = 10;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Create 60 circles once
+    const circles = [];
+    const cols = 10;
+    const rows = 6;
+    const cellWidth = width / cols;
+    const cellHeight = height / rows;
+
+    for (let i = 0; i < 60; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = col * cellWidth + cellWidth / 2;
+      const y = row * cellHeight + cellHeight / 2;
+      
+      const circle = svg.append("circle")
+        .attr("class", "time-circle")
+        .attr("cx", x)
+        .attr("cy", y)
+        .attr("r", 1)
+        .attr("fill", "#4285f4");
+      
+      circles.push(circle);
+    }
+
+    // Function to update the clock
+    function updateClock() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const millis = now.getMilliseconds();
+      
+      // Update existing circles
+      circles.forEach((circle, i) => {
+        const timeDiff = Math.abs(seconds - i);
+        const minDiff = Math.min(timeDiff, 60 - timeDiff);
+        const radius = Math.max(1, 30 - minDiff);        circle.attr("r", radius);
+        circle.attr("fill", `hsl(${((millis % 1000) / 1000 * 360 + (i * 360 / 60)) % 360}, 70%, 50%)`); });
+    }
+
+    // Initial update
+    updateClock();
+    
+    // Set interval to update the clock every second
+    setInterval(updateClock, 10);
+  </script>
+</body>
+</html>

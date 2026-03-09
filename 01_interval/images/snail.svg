@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="225.55" height="37.61" viewBox="0 0 225.55 37.61">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        stroke: #231f20;
+        stroke-miterlimit: 10;
+      }
+    </style>
+  </defs>
+  <g id="snailBody">
+    <path class="cls-1" d="M.05,35.04c2.95-.29,9.14-17.4,16.52-17.4s14.75,2.95,23.01,8.7,79.06,6.93,79.06,6.93c0,0,9.73-31.56,51.03-32.74s59.59,37.17,54.57,36.58S.05,35.04.05,35.04Z"/>
+  </g>
+  <g id="antenna">
+    <path class="cls-1" d="M26.01,18.81c-3.24-8.84,4.72-10.61,4.72-10.61l-4.72,10.61Z"/>
+  </g>
+</svg>
