@@ -1,7 +1,13 @@
+// REMOVED THE DATES
+// function fixyear(datestring) {
+//   const parts = datestring.split("/");
+//   return parts[0] + "/" + parts[1] + "/20" + parts[2];
+// }
+
 // Set up dimensions
-const margin = {top: 20, right: 10, bottom: 240, left: 60};
+const margin = {top: 20, right: 10, bottom: 240, left: 60}; // INCREASED THE BTM MARGIN
 const width = 900 - margin.left - margin.right;
-const height = 800 - margin.top - margin.bottom;
+const height = 800 - margin.top - margin.bottom; // INCREASED THE HEIGHT
 
 // Create SVG
 const svg = d3.select("#chart")
@@ -12,29 +18,27 @@ const svg = d3.select("#chart")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // Load data
-d3.tsv("2026-02-16_country_weekly.tsv").then(ready);
+d3.tsv("2026-02-16_country_weekly.tsv").then(ready); // CONNECTED TO MY DATA FILE
 
 function ready(datapoints) {
 
-  // Normalize fields: each row is one title with 3 metrics
-  // Blue = hours_viewed, Orange = views, Green = runtime (scaled to match magnitude)
+  // EACH ROW IS ONE TITLE WITH 3 METRICS
   const metrics = ["hours_viewed_first_91_days", "views_first_91_days", "runtime"];
   const metricLabels = {
     "hours_viewed_first_91_days": "Hours Viewed",
-    "views_first_91_days":        "Number of Views",
-    "runtime":                    "Runtime (scaled)"
+    "views_first_91_days": "Number of Views",
+    "runtime": "Runtime (scaled)"
   };
   const metricColors = {
-    "hours_viewed_first_91_days": "#4472C4",  // Blue
-    "views_first_91_days":        "#ED7D31",  // Orange
-    "runtime":                    "#70AD47"   // Green
+    "hours_viewed_first_91_days": "#4472C4",
+    "views_first_91_days": "#ED7D31",
+    "runtime": "#70AD47"
   };
 
-  // Parse numeric fields; scale runtime to same order as hours/views
+  // PARSE NUMERIC FIELDS AND SCALE RUNTIME TO SAME ORDER AS HOURS/VIEWS
   datapoints.forEach(d => {
     d.hours_viewed_first_91_days = +d.hours_viewed_first_91_days;
-    d.views_first_91_days        = +d.views_first_91_days;
-    // runtime is in hours (e.g. 1.67); scale by 1e8 so it's visible alongside billions
+    d.views_first_91_days = +d.views_first_91_days;
     d.runtime = +d.runtime * 1e8;
   });
 
@@ -112,9 +116,9 @@ function ready(datapoints) {
     .style("fill", "#555")
     .text("Stacked metrics (hours views, number of biews, runtime)");
 
-  // Draw legend
+  // Draw legend (core D3)
   const legend = svg.append("g")
-    .attr("transform", `translate(${width - 160},0)`);
+    .attr("transform", `translate(${width - margin.right - 120},${margin.top})`);
 
   const legendRow = legend.selectAll("g")
     .data(keys)
