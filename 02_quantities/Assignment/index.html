@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>02 - D3 Stacked Bar Chart Demo</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        
+        svg { 
+            background: #f9f9f9;
+            display: block;
+            margin: 2rem auto;
+            border: 1px solid #ddd;
+        }
+        
+        .container {
+            max-width: 100%;
+        }
+        
+        .note {
+            background: #f0f0f0;
+            padding: 15px;
+            border-left: 4px solid #4285f4;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>D3 Stacked Bar Chart</h1>
+        <p>This example demonstrates how to create stacked bar charts for showing part-to-whole relationships over time or categories.</p>
+        
+        <!-- Chart container for D3 visualization -->
+        <div id="chart"></div>
+        
+        <div class="note">
+            <strong>Code Reference:</strong> See <code>bar_stacked.js</code> for D3 stacking methods, data transformations, and datetime parsing.<br>
+            <strong>Note:</strong> This example uses only core D3 and includes a small in-SVG legend.
+        </div>
+    </div>
+    
+    <!-- Load D3.js library from CDN -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Load the visualization script -->
+    <script src="./bar_stacked.js"></script>
+    
+</body>
+</html>
