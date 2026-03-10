@@ -19,7 +19,7 @@ async function main() {
   
   // Fetch CSV data (Iris flower dataset)
   // Reference: https://en.wikipedia.org/wiki/Iris_flower_data_set
-  const data = await d3.csv('./iris.csv');
+  const data = await d3.csv('./iris.csv'); // The await keyword is used with D3's asynchronous data loading functions (like d3.json(), d3.csv(), etc.) to pause code execution until the data has been fetched and parsed. This ensures the data is available before you attempt to use it for visualization
   console.log('Loaded iris data:', data);
 
   // Fetch plain text data (demonstrates loading different data formats)
