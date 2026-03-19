@@ -24,10 +24,15 @@ d3.tsv("2026-02-16_global_alltime.tsv").then(ready);
 
 function ready(datapoints) {
   
-  // ПО ЭТОЙ ТЕМЕ ЕЩЕ ГЛЯНУТЬ - Keep only last 52 weeks
+  // WE NEED ONLY LATEST INFO< SO !) LATEST WEEK DATA PULLED
+  // map() LOOKS THROUGH ALL DATA IN datapoints AND RETURN A NEW WEEKS DATA
+  // WE GET Set IN RETURN.
+  // ... MEANS WE TAKE OUR Set DATA and CREATE A DATA ARRAY THAT WE COULD ACTUALLY .sort()
   const allWeeks = [...new Set(datapoints.map(d => d.week))].sort();
-  const last52 = new Set(allWeeks.slice(-52));
-  datapoints = datapoints.filter(d => last52.has(d.week));
+  // SHOW LAST 10
+  const last10 = new Set(allWeeks.slice(-10));
+  // SET datapoints AS LAST !)
+  datapoints = datapoints.filter(d => last10.has(d.week));
 
   // Parse dates
   // NEW .tsv FILE HAS THE DATES SO d3 CAN USE IT RIGHT OF THE BOX FOR X. SO PARSING NOT NEEDED. I DONT USE YEARS, ONLY WEEKS
@@ -41,7 +46,7 @@ function ready(datapoints) {
   const groupMap = d3.rollup(
     datapoints,
     // WITH NEW DATA FILE AND NEW GOAL WE NO LONGER NEED TO SUM THE PAYMENT AMOUNT. WE JUST COUNT THE AMOUNT OF LINES
-    (v) => d3.sum(v, (d) => +d['weekly_hours_viewed']),
+    (v) => d3.sum(v, (d) => +d['weekly_views']),
     // (d) => d.Class,
     // (d) => d.year
     (d) => d.week,
@@ -177,8 +182,3 @@ function ready(datapoints) {
     .style("font-size", "12px")
     .text(d => d);
 }
-
-
-
-
-
