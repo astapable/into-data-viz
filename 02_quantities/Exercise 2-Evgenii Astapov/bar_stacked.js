@@ -7,8 +7,9 @@
 
 // Set up dimensions
 const margin = {top: 20, right: 10, bottom: 20, left: 30};
-const width = 900 - margin.left - margin.right;
-const height = 500 - margin.top - margin.bottom;
+// A LITTLE WIDER
+const width = 1200 - margin.left - margin.right;
+const height = 600 - margin.top - margin.bottom;
 
 // Create SVG
 const svg = d3.select("#chart")
@@ -115,7 +116,7 @@ function ready(datapoints) {
     // d3.scaleBand() EXPECTS A REGULAR (Array) IN THE .domain(), NOT A SET. THAT’S WHY Array.from(weeks) CONVERTS THE SET TO ARRAY, AND .sort() SORTS IT ALPHABETICALLY.
     .domain(Array.from(weeks).sort())
     .range([margin.left, width - margin.right])
-    .padding(0.1);
+    .padding(0.3);
 
   // Y scale for stacked totals
   const y = d3.scaleLinear()
@@ -127,7 +128,13 @@ function ready(datapoints) {
   // Color scale
   const color = d3.scaleOrdinal()
     .domain(keys)
-    .range(d3.schemeCategory10)
+    // .range(d3.schemeCategory10)
+    .range([
+      "#4F46E5", // TV English
+      "#A5B4FC", // TV Non-English
+      "#F59E0B", // Films English
+      "#FCD34D"  // Films Non-English
+    ])
     .unknown("#ccc");
 
   // Draw stacked bars
@@ -136,17 +143,25 @@ function ready(datapoints) {
     .data(series)
     .join("g")
     .attr("fill", d => color(d.key))
-    .selectAll("rect")
+    .selectAll("path")
     .data(D => D.map(d => (d.key = D.key, d)))
-    .join("rect")
-    .attr("x", d => x(d.data[0]))
-    .attr("y", d => y(d[1]))
-    .attr("height", d => y(d[0]) - y(d[1]))
-    .attr("width", x.bandwidth())
+    // NEED TO CLIP FOR BORDERS
+    .join("path")
+    .attr("d", d => {
+      const px = x(d.data[0]);
+      const py = y(d[1]);
+      const pw = x.bandwidth();
+      const ph = y(d[0]) - y(d[1]);
+      const r = d.key === keys[keys.length - 1] ? 12 : 0;
+      if (r === 0) return `M${px},${py} h${pw} v${ph} h${-pw}z`;
+      return `M${px+r},${py} h${pw-2*r} a${r},${r} 0 0 1 ${r},${r} v${ph-r} h${-pw} v${-(ph-r)} a${r},${r} 0 0 1 ${r},${-r}z`;
+    })
     .append("title");
 
   // Draw axes
   svg.append("g")
+    // STYLE PULLED FROM CSS
+    .attr("class", "axis-x")
     .attr("transform", `translate(0,${height - margin.bottom})`)
     // WE WANT W1 Mar 2025 FORMAT in the X
     // .call(d3.axisBottom(x).tickSizeOuter(0))
@@ -155,30 +170,57 @@ function ready(datapoints) {
       const weekNum = Math.ceil(d.getDate() / 7);
       return `W${weekNum} ${d.toLocaleString('en', {month: 'short'})} ${d.getFullYear()}`;
     }))
-    .call(g => g.selectAll(".domain").remove());
+    // SHRINK TEXT CONTAINER FOR AXIS-X
+    // .call(g => g.selectAll(".domain").remove());
+    .call(g => g.selectAll(".tick text").each(function() {
+      const el = d3.select(this);
+      const parts = el.text().split(" ");
+      el.text("");
+      el.append("tspan").attr("x", 0).attr("dy", "0em").text(parts[0]);
+      el.append("tspan").attr("x", 0).attr("dy", "1.2em").text(parts.slice(1).join(" "));
+    }));
 
   svg.append("g")
+    // STYLE PULLED FROM CSS
+    .attr("class", "axis-y")
     .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(y).ticks(null, "s"))
+    // .call(d3.axisLeft(y).ticks(null, "s"))
+    .call(d3.axisLeft(y).ticks(null, "s").tickSize(-(width - margin.left - margin.right)))
     .call(g => g.selectAll(".domain").remove());
 
   // Draw legend (core D3)
-  const legend = svg.append("g")
-    .attr("transform", `translate(${width - margin.right - 120},${margin.top})`);
+  // const legend = svg.append("g")
+  //   .attr("transform", `translate(${width - margin.right - 120},${margin.top})`);
 
-  const legendRow = legend.selectAll("g")
+  // const legendRow = legend.selectAll("g")
+  //   .data(keys)
+  //   .join("g")
+  //   .attr("transform", (_, i) => `translate(0,${i * 18})`);
+
+  // legendRow.append("circle")
+  //   .attr("cx", 6)
+  //   .attr("cy", 6)
+  //   .attr("r", 6)
+  //   .attr("fill", d => color(d));
+
+  // legendRow.append("text")
+  //   .attr("x", 18)
+  //   .attr("y", 10)
+  //   .style("font-size", "12px")
+  //   .style("fill", "#FAFAFA")
+  //   .text(d => d);
+  const legendEl = d3.select("#legend");
+  
+  const legendRow = legendEl.selectAll("div")
     .data(keys)
-    .join("g")
-    .attr("transform", (_, i) => `translate(0,${i * 18})`);
+    .join("div")
+    .attr("class", "legend-row");
 
-  legendRow.append("rect")
-    .attr("width", 12)
-    .attr("height", 12)
-    .attr("fill", d => color(d));
+  legendRow.append("span")
+    .attr("class", "legend-dot")
+    .style("background-color", d => color(d));
 
-  legendRow.append("text")
-    .attr("x", 18)
-    .attr("y", 10)
-    .style("font-size", "12px")
+  legendRow.append("span")
+    .attr("class", "legend-label")
     .text(d => d);
 }
