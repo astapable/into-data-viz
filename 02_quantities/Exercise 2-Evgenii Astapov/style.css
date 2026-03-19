@@ -1,4 +1,3 @@
-/* FONTS */
 @font-face {
     font-family: "Geist";
     src: url("font/Geist-SemiBold.woff") format('woff');
@@ -18,84 +17,8 @@
 body {
     font-family: "Geist";
     padding: 0;
-    max-width: 100%;
     margin: 0;
     background-color: #222222;  
-}
-
-.note {
-    background: #f0f0f0;
-    padding: 15px;
-    border-left: 4px solid #4285f4;
-    margin-top: 2rem;
-}
-
-h1 {
-    color: #FAFAFA;
-    margin-bottom: 0;
-    margin-top: 0;
-    font-size: 2.5rem;  /* переопределить размер */
-}
-
-p {
-    color: #515151;
-    margin-bottom: 0;
-    margin-top: 0;
-    max-width: 100%;
-}
-
-.axis-y text {
-    fill: #616161;
-    font-size: 0.75rem;
-    transform: translateX(-16px);
-}
-
-.axis-x .domain {
-    stroke: #515151;
-    stroke-width: 4px;
-    stroke-linecap: round;
-}
-
-.axis-y .tick line {
-    stroke: #515151;
-    stroke-width: 2px;
-    stroke-linecap: round;
-    stroke-dasharray: 0 14;
-}
-
-.axis-x text {
-    fill: #616161;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    transform: translateY(16px);
-}
-
-.axis-x .tick line {
-    display: none;
-}
-
-.container {
-    padding: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    background-color: #252525;
-    border-radius: 2.125rem;
-    width: fit-content;
-}
-
-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-svg { 
-    /* background: #f9f9f9; */
-    display: block;
-    /* margin: 2rem auto; */
-    /* border: 1px solid #ddd; */
 }
 
 section {
@@ -106,20 +29,96 @@ section {
     justify-content: center;
 }
 
+.container {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background-color: #252525;
+    border-radius: 2.125rem;
+    width: fit-content;
+    border: 0.063rem solid #515151;
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 .wrapper {
-    max-width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
+svg { 
+    display: block;
+}
+
+/* TITLE STYLING */
+h1 {
+    font-weight: 600;
+    color: #FAFAFA;
+    margin-bottom: 0;
+    margin-top: 0;
+    font-size: 2rem;
+}
+
+/* SUBTITLE STYLING */
+.sizer {
+    max-width: 60%;
+}
+
+p {
+    font-weight: 400;
+    color: #A8A8A8;
+    margin-bottom: 0;
+    margin-top: 0;
+    font-size: 1.15rem;
+}
+
+/* AXIS TEXT STYLING */
+.axis-y text {
+    fill: #A8A8A8;
+    font-size: 0.75rem;
+    transform: translateX(-16px);
+}
+
+.axis-x text {
+    fill: #A8A8A8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    transform: translateY(16px);
+}
+
+/* AXIS TICK STYLING */
+.axis-x .domain {
+    stroke: #515151;
+    stroke-width: 0.25rem;
+    stroke-linecap: round;
+}
+
+.axis-x .tick line {
+    display: none;
+}
+
+.axis-y .tick line {
+    stroke: #616161;
+    stroke-width: 0.125rem;
+    stroke-linecap: round;
+    stroke-dasharray: 0 14;
+}
+
+/* LEGEND STYLING */
 #legend {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     justify-content: flex-start;
     padding: 1rem;
-    border: 1px solid #515151;
+    border: 0.063rem solid #515151;
     border-radius: 0.75rem;
     background-color: #252525;
 }
@@ -131,8 +130,8 @@ section {
 }
 
 .legend-dot {
-    width: 16px;
-    height: 16px;
+    width: 1rem;
+    height: 1rem;
     border-radius: 100%;
     flex-shrink: 0;
 }
@@ -142,8 +141,30 @@ section {
     font-size: 0.75rem;
 }
 
-.sizer {
-    max-width: 60%;
+/* TOOLTIP STYLING */
+#tooltip {
+    position: fixed;
+    opacity: 0;
+    pointer-events: none;
+    background-color: #272825;
+    border: 0.063rem solid #515151;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
 }
 
+#tooltip span:nth-child(1) {
+    color: #A8A8A8;
+    font-weight: 600;
+    margin-block-end: 0.5rem;
+}
+
+#tooltip span:nth-child(n+2) {
+    color: #FAFAFA;
+    font-weight: 400;
+    font-size: 1.25rem;
+}
 

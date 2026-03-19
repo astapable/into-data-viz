@@ -48,40 +48,25 @@ function ready(datapoints) {
     datapoints,
     // WITH NEW DATA FILE AND NEW GOAL WE NO LONGER NEED TO SUM THE PAYMENT AMOUNT. WE JUST COUNT THE AMOUNT OF LINES
     (v) => d3.sum(v, (d) => +d['weekly_views']),
-    // (d) => d.Class,
-    // (d) => d.year
     (d) => d.week,
     (d) => d.category
   );
 
   // Convert nested Map to flat array of objects
   // WE NOW USE WEEKS AND CATEGORIES
-  // const groupObject = Array.from(groupMap, ([cat, yearMap]) =>
-  //   Array.from(yearMap, ([year, total]) => ({ cat, year, total }))
-  // ).flat();
   const groupObject = Array.from(groupMap, ([week, catMap]) =>
     Array.from(catMap, ([cat, total]) => ({ week, cat, total }))
   ).flat();
 
   // Get unique categories and years
   // WE NOW USE WEEKS AND CATEGORIES
-  // const cats = new Set(groupObject.map((x) => x.cat));
-  // const years = new Set(groupObject.map((x) => x.year));
-  // const keys = Array.from(years).sort(d3.ascending);
   const weeks = new Set(groupObject.map((x) => x.week));
   const cats = new Set(groupObject.map((x) => x.cat));
-  // WE DONT NEED ASCENDING/DESCENDING
-  const keys = Array.from(cats).sort();
+  // SORT KEYS BY TOTAL VALUE ASCENDING — SMALLEST AT BOTTOM, LARGEST ON TOP
+  const catTotals = d3.rollup(groupObject, v => d3.sum(v, d => d.total), d => d.cat);
+  const keys = Array.from(cats).sort((a, b) => catTotals.get(a) - catTotals.get(b));
 
   // Fill in missing category/year combinations with 0 (required for stacking)
-  // for (let cat of cats) {
-  //   for (let year of years) {
-  //     const exists = groupObject.some(el => el.cat === cat && el.year === year);
-  //     if (!exists) {
-  //       groupObject.push({cat, year, total: 0});
-  //     }
-  //   }
-  // }
   // UPDATING THE DATA TO GET WEEK+CATEGORY
   for (let week of weeks) {
     for (let cat of cats) {
@@ -92,14 +77,11 @@ function ready(datapoints) {
     }
   }
 
-  // НУЖНО ПОДУМАТЬ ТУТ - ПОКА СРЫЛ
-  // Normalize to percentages
-  // for (let week of weeks) {
-  //   const weekTotal = d3.sum(groupObject.filter(d => d.week === week), d => d.total);
-  //   groupObject
-  //     .filter(d => d.week === week)
-  //     .forEach(d => d.total = (d.total / weekTotal) * 100);
-  // }
+  // TOTAL VIEWS PER WEEK (USED TO COUNT PERCENTAGE IN TOOLTIP)
+  const weekTotals = d3.rollup(
+    groupObject, // DATA ARRAY week, cat, total
+    v => d3.sum(v, d => d.total), // TOTAL BY GROUP
+    d => d.week); // GROUPED BY WEEK
 
   // Create stacked data using d3.stack()
   const series = d3.stack()
@@ -111,7 +93,7 @@ function ready(datapoints) {
   // X scale for categories
   const x = d3.scaleBand()
   // d3.groupSort WAS USED TO SORT CATEGORIES BY SUM. THE NEW DATA FILE USE WEEKS FOR X SO DATA IS NO LONGER SHOUL BE REPRESENTED IN DESCENDING ORDER BUT IN CHRONOLOGICAL ONE
-    // .domain(d3.groupSort(groupObject, D => -d3.sum(D, d => d.total), d => d.cat))
+    // DELETED - .domain(d3.groupSort(groupObject, D => -d3.sum(D, d => d.total), d => d.cat))
     // WEEKS WILL BE A Set — THIS IS A SPECIAL DATA STRUCTURE IN JS THAT STORES UNIQUE VALUES.
     // d3.scaleBand() EXPECTS A REGULAR (Array) IN THE .domain(), NOT A SET. THAT’S WHY Array.from(weeks) CONVERTS THE SET TO ARRAY, AND .sort() SORTS IT ALPHABETICALLY.
     .domain(Array.from(weeks).sort())
@@ -122,18 +104,18 @@ function ready(datapoints) {
   const y = d3.scaleLinear()
     // WE NEED A FIXED PERCENTAGE BAR
     .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-    // .domain([0, 100])
     .rangeRound([height - margin.bottom, margin.top]);
 
   // Color scale
   const color = d3.scaleOrdinal()
     .domain(keys)
-    // .range(d3.schemeCategory10)
+    // DELETED - .range(d3.schemeCategory10)
+    // COLORS SET
     .range([
-      "#4F46E5", // TV English
-      "#A5B4FC", // TV Non-English
-      "#F59E0B", // Films English
-      "#FCD34D"  // Films Non-English
+      "#4F46E5",
+      "#A5B4FC",
+      "#F59E0B",
+      "#FCD34D"
     ])
     .unknown("#ccc");
 
@@ -156,7 +138,27 @@ function ready(datapoints) {
       if (r === 0) return `M${px},${py} h${pw} v${ph} h${-pw}z`;
       return `M${px+r},${py} h${pw-2*r} a${r},${r} 0 0 1 ${r},${r} v${ph-r} h${-pw} v${-(ph-r)} a${r},${r} 0 0 1 ${r},${-r}z`;
     })
-    .append("title");
+    // MOUSE IN-OUT
+    .on("mouseover", function(event, d) {
+      const tooltip = d3.select("#tooltip"); // SELECT WHAT TO SHOW
+      const value = d[1] - d[0]; 
+      const weekTotal = weekTotals.get(d.data[0]); // WEEK TOTAL PRE_COUNTED IN map
+      const pct = ((value / weekTotal) * 100).toFixed(1); // COUNT THE PERCENT OF THE WEEK SEGMENT
+      tooltip
+      // TOOLTIP INVISIBLE STYLE AND HTML SETUP
+        .style("opacity", 1) 
+        .html(`<span>${d.key}</span><span>${d3.format(".2s")(value)} views</span><span>${pct}% of week</span>`);
+      d3.select(this).style("opacity", 0.75); // HOVERED BOX SHADE
+    })
+    .on("mousemove", function(event) {
+      d3.select("#tooltip")
+        .style("left", (event.pageX + 12) + "px")
+        .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", function() {
+      d3.select("#tooltip").style("opacity", 0);
+      d3.select(this).style("opacity", 1);
+    });
 
   // Draw axes
   svg.append("g")
@@ -189,37 +191,23 @@ function ready(datapoints) {
     .call(g => g.selectAll(".domain").remove());
 
   // Draw legend (core D3)
-  // const legend = svg.append("g")
-  //   .attr("transform", `translate(${width - margin.right - 120},${margin.top})`);
-
-  // const legendRow = legend.selectAll("g")
-  //   .data(keys)
-  //   .join("g")
-  //   .attr("transform", (_, i) => `translate(0,${i * 18})`);
-
-  // legendRow.append("circle")
-  //   .attr("cx", 6)
-  //   .attr("cy", 6)
-  //   .attr("r", 6)
-  //   .attr("fill", d => color(d));
-
-  // legendRow.append("text")
-  //   .attr("x", 18)
-  //   .attr("y", 10)
-  //   .style("font-size", "12px")
-  //   .style("fill", "#FAFAFA")
-  //   .text(d => d);
+  // SELECT THE HTML ELEMENT WITH id="legend"
   const legendEl = d3.select("#legend");
-  
+
+  // FOR EACH ITEM IN keys ARRAY ("Films (English)", "TV (English)", etc)
+  // CREATE A <div class="legend-row"> INSIDE #legend
   const legendRow = legendEl.selectAll("div")
     .data(keys)
     .join("div")
     .attr("class", "legend-row");
 
+  // INSIDE EACH ROW — APPEND A <span class="legend-dot">
+  // background-color IS SET FROM color SCALE: color("Films (English)") → "#F59E0B", etc
   legendRow.append("span")
     .attr("class", "legend-dot")
     .style("background-color", d => color(d));
 
+  // INSIDE EACH ROW — APPEND A <span class="legend-label"> WITH THE CATEGORY NAME AS TEXT
   legendRow.append("span")
     .attr("class", "legend-label")
     .text(d => d);
