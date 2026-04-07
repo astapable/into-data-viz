@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Map — Population Choropleth</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        #map { height: 100vh; }
+
+        .leaflet-tile-container img {
+            width: 256.5px !important;
+            height: 256.5px !important;
+        }
+
+        .leaflet-container { background: transparent; }
+
+        .leaflet-popup-content { font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/d3"></script>
+    <script src="https://unpkg.com/leaflet"></script>
+
+    <!-- App (ES module for top-level await) -->
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
