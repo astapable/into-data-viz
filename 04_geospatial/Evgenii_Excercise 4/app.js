@@ -36,7 +36,7 @@ const q80 = d3.quantile(values, 0.80)
 // NASA Blue Marble tile layer
 L.tileLayer(
     'https://map1.vis.earthdata.nasa.gov/wmts-webmerc/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg',
-    { attribution: '', noWrap: true }
+    { attribution: '' }
 ).addTo(map)
 
 // Sequential color scale: 5 quintile bins (low → high tech exports %)
