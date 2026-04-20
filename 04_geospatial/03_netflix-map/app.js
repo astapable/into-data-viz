@@ -4,7 +4,7 @@
 // TMDB API docs: https://developer.themoviedb.org/docs
 
 // ⚠️ Replace with your TMDB Bearer token — https://www.themoviedb.org/settings/api
-const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhOTVmNWQyOWUwNWJlNDViNGNmZjU1NDdiMjZkZGNkNCIsIm5iZiI6MTc1OTc4MTg0NS4wNSwic3ViIjoiNjhlNDIzZDU5NzU3NDBhYzVhNjE4MDhjIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.JlNBshvvwbTf_2C7JSA01z0bDODfK1rNPmV43aIiu7A'
+const TMDB_TOKEN = ''
 
 // Load shared GeoJSON and Netflix CSV data
 const geojson    = await d3.json('../countries.geojson')
