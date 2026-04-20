@@ -8,8 +8,19 @@
 const map = L.map('map', {
     preferCanvas: true,
     maxZoom: 13,
-    minZoom: 2
-}).setView([0, 0], 2)
+    minZoom: 2,
+    maxBounds: [[-90, -180], [90, 180]],
+    maxBoundsViscosity: 1.0
+}).setView([30, 10], 2)
+
+map.dragging.disable()
+map.on('zoomend', () => {
+    if (map.getZoom() <= map.getMinZoom()) {
+        map.dragging.disable()
+    } else {
+        map.dragging.enable()
+    }
+})
 
 // Load country boundaries GeoJSON (shared across geospatial examples)
 const geojson = await fetch('../countries.geojson').then(res => res.json())
@@ -68,3 +79,7 @@ L.geoJSON(geojson, {
         layer.bindPopup(`<strong>${name}</strong><br>${val !== undefined ? val.toFixed(1) + '% of manufactured exports' : 'No data'}`)
     }
 }).addTo(map)
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+    map.setView([30, 10], map.getMinZoom())
+})
