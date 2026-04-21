@@ -74,6 +74,8 @@ body {
 .leaflet-control-zoom-in::before,
 .leaflet-control-zoom-out::before,
 .leaflet-control-reset::before {
+    font-family: "Geist";
+    font-weight: 400;
     content: attr(data-tooltip);
     position: absolute;
     right: calc(100% + 0.625rem);
