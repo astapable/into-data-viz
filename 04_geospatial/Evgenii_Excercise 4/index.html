@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>World Map — Population Choropleth</title>
+        <title>World Map — High-Technology Exports</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+            integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+            crossorigin="" />
         <link rel="stylesheet" href="./style.css"/>
         <script defer src="https://unpkg.com/d3"></script>
         <script defer src="https://unpkg.com/leaflet"></script>
         <script defer type="module" src="./app.js"></script>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-            integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-            crossorigin="" />
     </head>
     <body>
         <main id="wrapper">
@@ -26,6 +26,10 @@
                 </p>
                 <p id="info-desc">High-tech export specialization is uneven across the world, with only a limited group of countries showing a high share of advanced manufacturing exports.</p>
             </div>
+            <div id="legend-box">
+                <div id="legend"></div>
+            </div>
+            <select id="year-select"></select>
         </main>
     </body>
 </html>
