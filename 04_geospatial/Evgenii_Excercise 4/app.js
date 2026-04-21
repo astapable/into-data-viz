@@ -54,14 +54,14 @@ const q80 = d3.quantile(values, 0.80)
 
 // NASA Blue Marble tile layer
 L.tileLayer(
-    'https://map1.vis.earthdata.nasa.gov/wmts-webmerc/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg',
-    { attribution: '' }
+    'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+    { attribution: '', subdomains: 'abcd' }
 ).addTo(map)
 
 // Sequential color scale: 5 quintile bins (low → high tech exports %)
 const color_scale = d3.scaleLinear()
     .domain([values[0], q20, q40, q60, q80])
-    .range(['#edf8fb', '#b2e2e2', '#66c2a4', '#2ca25f', '#006d2c'])
+    .range(['#ffb3d9', '#ff66b3', '#ec4899', '#be185d', '#831843'])
 
 // Add GeoJSON layer — fill color driven by high-tech exports %
 L.geoJSON(geojson, {
@@ -85,8 +85,25 @@ L.geoJSON(geojson, {
         const code = feature.properties.ISO_A3
         const val = techExports.get(code)
         layer.bindPopup(`<strong>${name}</strong><br>${val !== undefined ? val.toFixed(1) + '% of manufactured exports' : 'No data'}`)
+
+        layer.on('click', () => {
+            if (selectedLayer && selectedLayer !== layer) {
+                selectedLayer.setStyle({ fillOpacity: selectedLayer._originalOpacity })
+            }
+            selectedLayer = layer
+            selectedLayer._originalOpacity = layer.options.fillOpacity
+            layer.setStyle({ fillOpacity: 1 })
+        })
     }
 }).addTo(map)
+
+let selectedLayer = null
+map.on('popupclose', () => {
+    if (selectedLayer) {
+        selectedLayer.setStyle({ fillOpacity: selectedLayer._originalOpacity })
+        selectedLayer = null
+    }
+})
 
 const ResetControl = L.Control.extend({
     options: { position: 'topleft' },

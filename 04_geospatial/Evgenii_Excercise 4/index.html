@@ -5,22 +5,27 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>World Map — Population Choropleth</title>
         <link rel="stylesheet" href="./style.css"/>
-        <!-- Libraries -->
         <script defer src="https://unpkg.com/d3"></script>
         <script defer src="https://unpkg.com/leaflet"></script>
-        <!-- App (ES module for top-level await) -->
         <script defer type="module" src="./app.js"></script>
-        <!-- Leaflet CSS -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
             integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
             crossorigin="" />
     </head>
     <body>
-        <!-- /* NEW */ -->
         <main id="wrapper">
             <div id="map"></div>
+            <div id="info-box">
+                <p id="info-title">
+                    The share of high-technology products within each country’s manufactured exports.
+                    <a href="https://data.worldbank.org/indicator/TX.VAL.TECH.MF.ZS" target="_blank" aria-label="Source">
+                        <svg width="18" height="18" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 10L10 2M10 2H5M10 2V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </p>
+                <p id="info-desc">High-tech export specialization is uneven across the world, with only a limited group of countries showing a high share of advanced manufacturing exports.</p>
+            </div>
         </main>
-        <!-- /* NEW */ -->
     </body>
 </html>
-J
