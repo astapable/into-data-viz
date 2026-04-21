@@ -1,10 +1,3 @@
-// World Map — High-Technology Exports Choropleth
-// Countries colored by high-tech exports as % of manufactured exports (2022)
-// Data: World Bank Open Data API — https://data.worldbank.org/indicator/TX.VAL.TECH.MF.ZS
-// GeoJSON source: https://datahub.io/core/geo-countries
-// Tile source: NASA Blue Marble (GIBS/EOSDIS)
-
-// Initialize map centered at [0, 0] with zoom level 2
 const map = L.map('map', {
     preferCanvas: true,
     maxZoom: 13,
@@ -13,7 +6,6 @@ const map = L.map('map', {
     maxBoundsViscosity: 1.0
 }).setView([30, 10], 2)
 
-// Move title to data-tooltip to prevent double tooltip (native + CSS)
 ;['.leaflet-control-zoom-in', '.leaflet-control-zoom-out'].forEach(sel => {
     const btn = document.querySelector(sel)
     if (!btn) return
@@ -30,40 +22,33 @@ map.on('zoomend', () => {
     }
 })
 
-// Load country boundaries GeoJSON (shared across geospatial examples)
 const geojson = await fetch('../countries.geojson').then(res => res.json())
 
-// Fetch 2022 high-technology exports (% of manufactured exports) from World Bank API
 const worldBankData = await fetch(
-    'https://api.worldbank.org/v2/country/all/indicator/TX.VAL.TECH.MF.ZS?date=2022&format=json&per_page=300'
+    'https://api.worldbank.org/v2/country/all/indicator/TX.VAL.TECH.MF.ZS?mrv=1&format=json&per_page=300'
 ).then(res => res.json())
 
-// Build country ISO code → value map (exclude null values)
 const techExports = d3.rollup(
     worldBankData[1].filter(row => row.value !== null),
     v => parseFloat(v[0].value),
     d => d.countryiso3code
 )
 
-// Compute quintile breakpoints for a 5-bin sequential color scale
 const values = Array.from(techExports.values()).sort((a, b) => a - b)
 const q20 = d3.quantile(values, 0.20)
 const q40 = d3.quantile(values, 0.40)
 const q60 = d3.quantile(values, 0.60)
 const q80 = d3.quantile(values, 0.80)
 
-// NASA Blue Marble tile layer
 L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
     { attribution: '', subdomains: 'abcd' }
 ).addTo(map)
 
-// Sequential color scale: 5 quintile bins (low → high tech exports %)
 const color_scale = d3.scaleLinear()
     .domain([values[0], q20, q40, q60, q80])
     .range(['#ffb3d9', '#ff66b3', '#ec4899', '#be185d', '#831843'])
 
-// Add GeoJSON layer — fill color driven by high-tech exports %
 L.geoJSON(geojson, {
     style: feature => {
         const code = feature.properties.ISO_A3

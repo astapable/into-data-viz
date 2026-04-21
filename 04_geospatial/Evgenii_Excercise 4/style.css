@@ -38,7 +38,6 @@ body {
     height: 100%;
 }
 
-/* Leaflet overrides */
 .leaflet-tile-container img {
     width: 256.5px !important;
     height: 256.5px !important;
@@ -56,8 +55,6 @@ body {
     margin: 1rem 1.25rem;
 }
 
-
-/* Controls position */
 .leaflet-top.leaflet-left {
     top: 50%;
     left: auto;
@@ -69,14 +66,12 @@ body {
     gap: 0.25rem;
 }
 
-/* Shared: position relative for tooltip */
 .leaflet-control-zoom-in,
 .leaflet-control-zoom-out,
 .leaflet-control-reset {
     position: relative;
 }
 
-/* Tooltip pill */
 .leaflet-control-zoom-in::before,
 .leaflet-control-zoom-out::before,
 .leaflet-control-reset::before {
@@ -105,7 +100,6 @@ body {
     opacity: 1;
 }
 
-/* Zoom control */
 .leaflet-control-zoom {
     border: none;
     border-radius: 0.625rem;
@@ -133,7 +127,6 @@ body {
     color: #212121 !important;
 }
 
-/* Reset button */
 .leaflet-control-reset {
     width: 2.25rem;
     height: 2.25rem;
@@ -150,7 +143,6 @@ body {
 
 .leaflet-control-reset:hover { background: #ebebeb; }
 
-/* Info box */
 #info-box {
     position: absolute;
     bottom: 1.25rem;
