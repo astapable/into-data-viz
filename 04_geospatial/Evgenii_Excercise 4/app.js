@@ -13,6 +13,14 @@ const map = L.map('map', {
     maxBoundsViscosity: 1.0
 }).setView([30, 10], 2)
 
+// Move title to data-tooltip to prevent double tooltip (native + CSS)
+;['.leaflet-control-zoom-in', '.leaflet-control-zoom-out'].forEach(sel => {
+    const btn = document.querySelector(sel)
+    if (!btn) return
+    btn.dataset.tooltip = btn.title
+    btn.removeAttribute('title')
+})
+
 map.dragging.disable()
 map.on('zoomend', () => {
     if (map.getZoom() <= map.getMinZoom()) {
@@ -80,6 +88,23 @@ L.geoJSON(geojson, {
     }
 }).addTo(map)
 
-document.getElementById('btn-reset').addEventListener('click', () => {
-    map.setView([30, 10], map.getMinZoom())
+const ResetControl = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd() {
+        const btn = L.DomUtil.create('button', 'leaflet-control-reset')
+        btn.id = 'btn-reset'
+        btn.dataset.tooltip = 'Reset view'
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10" cy="10" r="3" fill="#212121"/>
+            <circle cx="10" cy="10" r="7" stroke="#212121" stroke-width="1.5" fill="none"/>
+            <line x1="10" y1="1" x2="10" y2="4" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="10" y1="16" x2="10" y2="19" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="1" y1="10" x2="4" y2="10" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="16" y1="10" x2="19" y2="10" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>`
+        L.DomEvent.on(btn, 'click', () => map.setView([30, 10], map.getMinZoom()))
+        L.DomEvent.disableClickPropagation(btn)
+        return btn
+    }
 })
+new ResetControl().addTo(map)
