@@ -291,7 +291,7 @@ function renderPanel(geo, name, year) {
     }
 
     const totalW = panel.node().clientWidth || 280
-    const margin = { top: 6, right: 10, bottom: 28, left: 112 }
+    const margin = { top: 6, right: 56, bottom: 4, left: 112 }
     const innerW = totalW - margin.left - margin.right
     const barH = 16, barGap = 8
     const innerH = bars.length * (barH + barGap) - barGap
@@ -305,39 +305,31 @@ function renderPanel(geo, name, year) {
     const svg = panel.append('svg').attr('width', totalW).attr('height', totalH)
     const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
-    // Vertical gridlines
-    g.append('g').attr('class', 'panel-grid')
-        .attr('transform', `translate(0,${innerH})`)
-        .call(d3.axisBottom(x).ticks(4).tickSize(-innerH).tickFormat(''))
+    const rows = g.selectAll('g.row').data(bars).enter().append('g')
+        .attr('class', 'row')
+        .attr('transform', (d, i) => `translate(0, ${i * (barH + barGap)})`)
+
+    // Category labels on left
+    rows.append('text')
+        .attr('x', -8).attr('y', barH / 2)
+        .attr('dy', '0.35em').attr('text-anchor', 'end')
+        .text(d => d.label)
+        .attr('fill', '#666').attr('font-size', '11px')
 
     // Bars
-    g.selectAll('rect').data(bars).enter().append('rect')
-        .attr('y', (d, i) => i * (barH + barGap))
+    rows.append('rect')
         .attr('width', d => x(d.value))
         .attr('height', barH)
         .attr('rx', 3)
         .attr('fill', '#ec4899')
 
-    // Category labels on Y axis
-    g.selectAll('text.cat').data(bars).enter().append('text')
-        .attr('class', 'cat')
-        .attr('x', -8).attr('y', (d, i) => i * (barH + barGap) + barH / 2)
-        .attr('dy', '0.35em').attr('text-anchor', 'end')
-        .text(d => d.label)
-        .attr('fill', '#666').attr('font-size', '11px')
-
-    // X axis ticks with formatted values
+    // Inline value labels to the right of each bar
     const fmt = d => d >= 1000 ? d3.format(',.0f')(d / 1000) + 'k' : d3.format(',.0f')(d)
-    g.append('g').attr('class', 'panel-x-axis')
-        .attr('transform', `translate(0,${innerH})`)
-        .call(d3.axisBottom(x).ticks(4).tickFormat(fmt))
-
-    // Unit label
-    g.append('text')
-        .attr('x', innerW).attr('y', innerH + 24)
-        .attr('text-anchor', 'end')
-        .attr('font-size', '9px').attr('fill', '#bbb')
-        .text('M€')
+    rows.append('text')
+        .attr('x', d => x(d.value) + 6).attr('y', barH / 2)
+        .attr('dy', '0.35em')
+        .text(d => d.value > 0 ? fmt(d.value) + ' M€' : '—')
+        .attr('fill', '#999').attr('font-size', '10px')
 }
 
 loadYear(YEARS[0])
