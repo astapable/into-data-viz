@@ -1,32 +1,29 @@
-const map = L.map('map', {
-    preferCanvas: true,
-    maxZoom: 10,
-    minZoom: 3,
-    maxBounds: [[34, -25], [72, 45]],
-    maxBoundsViscosity: 1.0
-}).setView([54, 15], 4)
+const container = document.getElementById('map')
+const width = container.clientWidth
+const height = container.clientHeight
 
-;['.leaflet-control-zoom-in', '.leaflet-control-zoom-out'].forEach(sel => {
-    const btn = document.querySelector(sel)
-    if (!btn) return
-    btn.dataset.tooltip = btn.title
-    btn.removeAttribute('title')
-})
+const sidebar = document.getElementById('sidebar')
+const sidebarRight = sidebar.offsetLeft + sidebar.offsetWidth
+const centerX = sidebarRight + (width - sidebarRight) / 2
 
-map.dragging.disable()
-map.on('zoomend', () => {
-    if (map.getZoom() <= map.getMinZoom()) {
-        map.dragging.disable()
-    } else {
-        map.dragging.enable()
-    }
-})
+const projection = d3.geoOrthographic()
+    .scale(Math.min(width - sidebarRight, height) * 0.42)
+    .rotate([-15, -52])
+    .translate([centerX, height / 2])
+    .clipAngle(90)
 
-const geojson = await fetch('./data/eu_countries.geojson').then(res => res.json())
+const path = d3.geoPath().projection(projection)
+
+const svg = d3.select('#map').append('svg')
+    .attr('width', width)
+    .attr('height', height)
+
+// Load data
+const geojson = await fetch('./data/eu_countries.geojson').then(r => r.json())
 const tsvRows = await d3.tsv('./data/htec_si_exp4.tsv')
 const bRows = await d3.tsv('./data/htec_trd_group4.tsv')
 
-// Build Map: year string → Map(ISO-2 code → % value)
+// Build Map: year → Map(ISO-2 → % value)
 const firstCol = Object.keys(tsvRows[0])[0]
 const yearCols = Object.keys(tsvRows[0]).slice(1)
 
@@ -41,7 +38,7 @@ const allYears = new Map(
     ])
 )
 
-// Parse breakdown: keep only EXP + WORLD, exclude totals
+// Parse breakdown: EXP + WORLD only, no totals
 const bFirstCol = Object.keys(bRows[0])[0]
 const bYearCols = Object.keys(bRows[0]).slice(1)
 
@@ -59,11 +56,93 @@ const breakdownData = bRows
         }
     })
 
-L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
-    { attribution: '', subdomains: 'abcd' }
-).addTo(map)
+// Globe layers
+svg.append('circle')
+    .attr('class', 'sphere')
+    .attr('cx', centerX).attr('cy', height / 2)
+    .attr('r', projection.scale())
 
+svg.append('path')
+    .datum(d3.geoGraticule()())
+    .attr('class', 'graticule')
+    .attr('d', path)
+
+const colors = ['#fce7f3', '#f9a8d4', '#f472b6', '#ec4899', '#be185d']
+let selectedCountry = null
+
+const countryPaths = svg.append('g')
+    .selectAll('path')
+    .data(geojson.features)
+    .enter().append('path')
+    .attr('class', 'country')
+    .attr('d', path)
+    .attr('fill', '#c8c4bc')
+
+svg.append('circle')
+    .attr('class', 'globe-outline')
+    .attr('cx', centerX).attr('cy', height / 2)
+    .attr('r', projection.scale())
+
+// Tooltip
+const tooltip = d3.select('#tooltip')
+
+countryPaths
+    .on('mouseover', (event, d) => {
+        const val = allYears.get(select.value)?.get(d.properties.CNTR_ID)
+        tooltip.style('display', 'block').html(
+            `<strong>${d.properties.NAME_ENGL}</strong>` +
+            (val !== undefined ? `<br>${val.toFixed(1)}% of total exports` : '')
+        )
+    })
+    .on('mousemove', event => {
+        tooltip.style('left', (event.clientX + 14) + 'px').style('top', (event.clientY - 36) + 'px')
+    })
+    .on('mouseout', () => tooltip.style('display', 'none'))
+    .on('click', (event, d) => {
+        const geo = d.properties.CNTR_ID
+        const name = d.properties.NAME_ENGL
+        countrySelect.value = geo
+        selectCountry(geo, name)
+    })
+
+// Click ocean to deselect
+svg.select('.sphere').on('click', () => {
+    countrySelect.value = ''
+    selectCountry('', '')
+})
+
+// Drag to rotate
+svg.call(d3.drag()
+    .on('drag', event => {
+        const [λ, φ] = projection.rotate()
+        projection.rotate([λ + event.dx * 0.3, Math.max(-80, Math.min(80, φ - event.dy * 0.3))])
+        updateGlobe()
+    })
+)
+
+function updateGlobe() {
+    const r = projection.scale()
+    svg.select('.sphere').attr('r', r)
+    svg.select('.globe-outline').attr('r', r)
+    svg.selectAll('path').attr('d', path)
+}
+
+// Zoom controls
+const initScale = projection.scale()
+document.getElementById('zoom-in').addEventListener('click', () => {
+    projection.scale(Math.min(projection.scale() * 1.25, initScale * 4))
+    updateGlobe()
+})
+document.getElementById('zoom-out').addEventListener('click', () => {
+    projection.scale(Math.max(projection.scale() * 0.8, initScale * 0.5))
+    updateGlobe()
+})
+document.getElementById('reset').addEventListener('click', () => {
+    projection.scale(initScale).rotate([-15, -52])
+    updateGlobe()
+})
+
+// Year select
 const YEARS = yearCols.map(c => c.trim()).reverse()
 const select = document.getElementById('year-select')
 YEARS.forEach(y => {
@@ -74,11 +153,122 @@ YEARS.forEach(y => {
 })
 select.value = YEARS[0]
 
-const colors = ['#831843', '#be185d', '#ec4899', '#ff66b3', '#ffb3d9']
+// Country select
+const countrySelect = document.getElementById('country-select')
+const countryList = geojson.features
+    .filter(f => allYears.get(YEARS[0])?.has(f.properties.CNTR_ID))
+    .map(f => ({ geo: f.properties.CNTR_ID, name: f.properties.NAME_ENGL }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 
-let geoLayer = null
-let selectedLayer = null
-let selectedCountry = null
+countryList.forEach(c => {
+    const opt = document.createElement('option')
+    opt.value = c.geo
+    opt.textContent = c.name
+    countrySelect.appendChild(opt)
+})
+
+function selectCountry(geo, name) {
+    selectedCountry = geo ? { geo, name } : null
+    countryPaths.classed('country--selected', d => d.properties.CNTR_ID === geo)
+    if (geo) {
+        renderPanel(geo, name, select.value)
+    } else {
+        renderMapPreview(select.value)
+    }
+}
+
+function renderMapPreview(year) {
+    const data = allYears.get(String(year))
+    const vals = Array.from(data.values()).sort((a, b) => a - b)
+    const domain = [vals[0], d3.quantile(vals, 0.2), d3.quantile(vals, 0.4), d3.quantile(vals, 0.6), d3.quantile(vals, 0.8)]
+    const colorScale = d3.scaleLinear().domain(domain).range(colors).clamp(true)
+
+    const panel = d3.select('#panel')
+    panel.html('<p class="panel-hint">Select or click a country</p>')
+
+    const container = panel.append('div').attr('class', 'preview-container')
+
+    const w = 300, h = 300
+    // Center ~10°E 50°N (France/Germany) at scale 1.6× — Iceland out, Portugal in
+    const miniProj = d3.geoOrthographic()
+        .scale(w * 1.6)
+        .rotate([-10, -50])
+        .translate([w / 2, h / 2])
+        .clipAngle(90)
+    const miniPath = d3.geoPath().projection(miniProj)
+
+    // Absolutely positioned so it fills the container regardless of flex height resolution
+    const miniSvg = container.append('svg')
+        .attr('viewBox', `0 0 ${w} ${h}`)
+        .attr('preserveAspectRatio', 'xMidYMid slice')
+        .style('position', 'absolute')
+        .style('inset', '0')
+        .style('width', '100%')
+        .style('height', '100%')
+        .style('pointer-events', 'none')
+
+    // Fill entire viewBox with sphere color — no empty gaps when container is taller than map content
+    miniSvg.append('rect')
+        .attr('width', w).attr('height', h)
+        .attr('fill', '#ddd9d0')
+
+    miniSvg.append('path')
+        .datum(d3.geoGraticule()())
+        .attr('class', 'graticule')
+        .attr('d', miniPath)
+
+    miniSvg.selectAll('path.country')
+        .data(geojson.features)
+        .enter().append('path')
+        .attr('class', 'country')
+        .attr('d', miniPath)
+        .attr('fill', d => {
+            const val = data.get(d.properties.CNTR_ID)
+            return val !== undefined ? colorScale(val) : '#c8c4bc'
+        })
+}
+
+countrySelect.addEventListener('change', e => {
+    const geo = e.target.value
+    const name = countryList.find(c => c.geo === geo)?.name || ''
+    selectCountry(geo, name)
+})
+
+function loadYear(year) {
+    const data = allYears.get(String(year))
+    const vals = Array.from(data.values()).sort((a, b) => a - b)
+    const q20 = d3.quantile(vals, 0.2)
+    const q40 = d3.quantile(vals, 0.4)
+    const q60 = d3.quantile(vals, 0.6)
+    const q80 = d3.quantile(vals, 0.8)
+    const domain = [vals[0], q20, q40, q60, q80]
+    const colorScale = d3.scaleLinear().domain(domain).range(colors).clamp(true)
+
+    countryPaths.attr('fill', d => {
+        const val = data.get(d.properties.CNTR_ID)
+        return val !== undefined ? colorScale(val) : '#c8c4bc'
+    })
+
+    renderLegend(domain)
+    if (selectedCountry) renderPanel(selectedCountry.geo, selectedCountry.name, year)
+    else renderMapPreview(year)
+}
+
+function renderLegend(domain) {
+    const labels = [
+        `< ${domain[1].toFixed(1)}%`,
+        `${domain[1].toFixed(1)} – ${domain[2].toFixed(1)}%`,
+        `${domain[2].toFixed(1)} – ${domain[3].toFixed(1)}%`,
+        `${domain[3].toFixed(1)} – ${domain[4].toFixed(1)}%`,
+        `> ${domain[4].toFixed(1)}%`
+    ]
+    document.getElementById('legend').innerHTML = labels.map((label, i) => `
+        <div class="legend-item">
+            <span class="legend-swatch" style="background:${colors[i]}"></span>
+            <span class="legend-label">${label}</span>
+        </div>
+    `).join('')
+}
 
 const LABELS = {
     AER: 'Aerospace', ARM: 'Armament', CHE: 'Chemistry',
@@ -100,123 +290,55 @@ function renderPanel(geo, name, year) {
         return
     }
 
-    const w = 260, rowH = 24
-    const x = d3.scaleLinear().domain([0, d3.max(bars, d => d.value)]).range([0, 130])
+    const totalW = panel.node().clientWidth || 280
+    const margin = { top: 6, right: 10, bottom: 28, left: 112 }
+    const innerW = totalW - margin.left - margin.right
+    const barH = 16, barGap = 8
+    const innerH = bars.length * (barH + barGap) - barGap
+    const totalH = innerH + margin.top + margin.bottom
 
-    const svg = panel.append('svg').attr('width', w).attr('height', bars.length * rowH)
+    const x = d3.scaleLinear()
+        .domain([0, d3.max(bars, d => d.value)])
+        .range([0, innerW])
+        .nice()
 
-    const g = svg.selectAll('g').data(bars).enter().append('g')
-        .attr('transform', (d, i) => `translate(0, ${i * rowH})`)
+    const svg = panel.append('svg').attr('width', totalW).attr('height', totalH)
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
-    g.append('text').attr('x', 0).attr('y', 15)
-        .text(d => d.label)
-        .attr('fill', '#a3a3a3').attr('font-size', '11px')
+    // Vertical gridlines
+    g.append('g').attr('class', 'panel-grid')
+        .attr('transform', `translate(0,${innerH})`)
+        .call(d3.axisBottom(x).ticks(4).tickSize(-innerH).tickFormat(''))
 
-    g.append('rect').attr('x', 112).attr('y', 4).attr('height', 13).attr('rx', 2)
+    // Bars
+    g.selectAll('rect').data(bars).enter().append('rect')
+        .attr('y', (d, i) => i * (barH + barGap))
         .attr('width', d => x(d.value))
+        .attr('height', barH)
+        .attr('rx', 3)
         .attr('fill', '#ec4899')
 
-    g.append('text').attr('x', d => 116 + x(d.value)).attr('y', 15)
-        .text(d => d.value > 0 ? d3.format(',.0f')(d.value) + 'M' : '—')
-        .attr('fill', '#fafafa').attr('font-size', '11px')
+    // Category labels on Y axis
+    g.selectAll('text.cat').data(bars).enter().append('text')
+        .attr('class', 'cat')
+        .attr('x', -8).attr('y', (d, i) => i * (barH + barGap) + barH / 2)
+        .attr('dy', '0.35em').attr('text-anchor', 'end')
+        .text(d => d.label)
+        .attr('fill', '#666').attr('font-size', '11px')
+
+    // X axis ticks with formatted values
+    const fmt = d => d >= 1000 ? d3.format(',.0f')(d / 1000) + 'k' : d3.format(',.0f')(d)
+    g.append('g').attr('class', 'panel-x-axis')
+        .attr('transform', `translate(0,${innerH})`)
+        .call(d3.axisBottom(x).ticks(4).tickFormat(fmt))
+
+    // Unit label
+    g.append('text')
+        .attr('x', innerW).attr('y', innerH + 24)
+        .attr('text-anchor', 'end')
+        .attr('font-size', '9px').attr('fill', '#bbb')
+        .text('M€')
 }
-
-function loadYear(year) {
-    const data = allYears.get(String(year))
-
-    const vals = Array.from(data.values()).sort((a, b) => a - b)
-    const q20 = d3.quantile(vals, 0.2)
-    const q40 = d3.quantile(vals, 0.4)
-    const q60 = d3.quantile(vals, 0.6)
-    const q80 = d3.quantile(vals, 0.8)
-    const domain = [vals[0], q20, q40, q60, q80]
-
-    const colorScale = d3.scaleLinear().domain(domain).range(colors)
-
-    if (geoLayer) map.removeLayer(geoLayer)
-    selectedLayer = null
-
-    geoLayer = L.geoJSON(geojson, {
-        style: feature => {
-            const val = data.get(feature.properties.CNTR_ID)
-            const hasData = val !== undefined
-            const fill = hasData ? colorScale(val) : '#444'
-            return {
-                stroke: true,
-                weight: 1,
-                color: hasData ? fill : '#555',
-                opacity: hasData ? 0.8 : 0.2,
-                fillColor: fill,
-                fillOpacity: hasData ? 0.5 : 0.1
-            }
-        },
-        onEachFeature: (feature, layer) => {
-            const name = feature.properties.NAME_ENGL
-            const geo = feature.properties.CNTR_ID
-            const val = data.get(geo)
-            layer.bindPopup(`<strong>${name}</strong><br>${val !== undefined ? val.toFixed(1) + '% of total exports' : 'No data'}`)
-            layer.on('click', () => {
-                if (selectedLayer && selectedLayer !== layer) {
-                    selectedLayer.setStyle({ fillOpacity: selectedLayer._originalOpacity })
-                }
-                selectedLayer = layer
-                selectedLayer._originalOpacity = layer.options.fillOpacity
-                layer.setStyle({ fillOpacity: 1 })
-                selectedCountry = { geo, name }
-                renderPanel(geo, name, select.value)
-            })
-        }
-    }).addTo(map)
-
-    renderLegend(domain)
-}
-
-function renderLegend(domain) {
-    const legend = document.getElementById('legend')
-    const labels = [
-        `< ${domain[1].toFixed(1)}%`,
-        `${domain[1].toFixed(1)} – ${domain[2].toFixed(1)}%`,
-        `${domain[2].toFixed(1)} – ${domain[3].toFixed(1)}%`,
-        `${domain[3].toFixed(1)} – ${domain[4].toFixed(1)}%`,
-        `> ${domain[4].toFixed(1)}%`
-    ]
-    legend.innerHTML = labels.map((label, i) => `
-        <div class="legend-item">
-            <span class="legend-swatch" style="background:${colors[i]}"></span>
-            <span class="legend-label">${label}</span>
-        </div>
-    `).join('')
-}
-
-map.on('popupclose', () => {
-    if (selectedLayer) {
-        selectedLayer.setStyle({ fillOpacity: selectedLayer._originalOpacity })
-        selectedLayer = null
-    }
-})
 
 loadYear(YEARS[0])
-select.addEventListener('change', e => {
-    loadYear(e.target.value)
-    if (selectedCountry) renderPanel(selectedCountry.geo, selectedCountry.name, e.target.value)
-})
-
-const ResetControl = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd() {
-        const btn = L.DomUtil.create('button', 'leaflet-control-reset')
-        btn.dataset.tooltip = 'Reset view'
-        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10" cy="10" r="3" fill="#212121"/>
-            <circle cx="10" cy="10" r="7" stroke="#212121" stroke-width="1.5" fill="none"/>
-            <line x1="10" y1="1" x2="10" y2="4" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="10" y1="16" x2="10" y2="19" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="1" y1="10" x2="4" y2="10" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="16" y1="10" x2="19" y2="10" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>`
-        L.DomEvent.on(btn, 'click', () => map.setView([54, 15], 4))
-        L.DomEvent.disableClickPropagation(btn)
-        return btn
-    }
-})
-new ResetControl().addTo(map)
+select.addEventListener('change', e => loadYear(e.target.value))
