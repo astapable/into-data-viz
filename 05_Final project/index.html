@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Global High-Technology Exports</title>
+        <title>Global High-Technology Exports by Evgenii Astapov</title>
+        <meta name="description" content="High-tech export specialization is uneven across the world, with only a limited group of countries showing a high share of advanced manufacturing exports">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="./style.css"/>
         <script defer src="https://unpkg.com/d3"></script>
         <script defer type="module" src="./app.js"></script>
@@ -57,13 +57,13 @@
                     </ul>
                      <div class="detail-chart">
                          <div id="panel">
-                             <p id="info-desc">Click a country to see its value.</p>
+                             <div class="pie-wrap"><p id="info-desc">Click a country to see its value.</p></div>
                          </div>
                      </div>
                 </section>
             </section>
             <section id="map">
-                <div id="controls">
+                <nav id="controls">
                     <button id="zoom-in" aria-label="Zoom in">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -80,7 +80,7 @@
                             <path d="M3 2.5V5H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                </div>
+                </nav>
                 <a href="https://astapable.com/" target="_blank" id="author-box">by Evgenii Astapov</a>
                 <div id="legend-box">
                     <div id="legend"></div>

@@ -1,3 +1,5 @@
+const css = prop => getComputedStyle(document.documentElement).getPropertyValue(prop).trim()
+
 const container = document.getElementById('map')
 const width = container.clientWidth
 const height = container.clientHeight
@@ -43,8 +45,11 @@ for (const [region, isos] of Object.entries(REGIONS))
     for (const iso of isos) isoToRegion[iso] = region
 
 const colors = ['#fbcfe8', '#f9a8d4', '#f472b6', '#db2777', '#831843']
+const catColors = ['#f472b6','#fb923c','#facc15','#4ade80','#60a5fa','#c084fc','#f87171','#34d399','#a78bfa']
+
 let selectedCountry = null
 let currentData = null
+let allCountries = null
 
 svg.append('circle')
     .attr('class', 'sphere')
@@ -62,13 +67,15 @@ const countryPaths = svg.append('g')
     .enter().append('path')
     .attr('class', 'country')
     .attr('d', path)
-    .attr('fill', '#c8c4bc')
+    .attr('fill', css('--no-data'))
 
 svg.append('circle')
     .attr('class', 'globe-outline')
     .attr('cx', centerX).attr('cy', height / 2)
     .attr('r', projection.scale())
 
+const regionSelect = document.getElementById('region-select')
+const countrySelect = document.getElementById('country-select')
 const tooltip = d3.select('#tooltip')
 
 countryPaths
@@ -126,19 +133,27 @@ document.getElementById('zoom-out').addEventListener('click', () => {
     updateGlobe()
 })
 document.getElementById('reset').addEventListener('click', () => {
-    projection.scale(initScale).rotate([0, -20])
-    updateGlobe()
+    regionSelect.value = ''
+    countrySelect.value = ''
+    buildCountryOptions('')
+    countryPaths.classed('country--dimmed', false)
+    selectCountry('', '')
+    d3.transition().duration(900).tween('rotate', () => {
+        const ri = d3.interpolate(projection.rotate(), [0, -20])
+        const si = d3.interpolate(projection.scale(), initScale)
+        return t => { projection.rotate(ri(t)).scale(si(t)); updateGlobe() }
+    })
 })
 
 const YEARS = Array.from({ length: 17 }, (_, i) => String(2023 - i))
-const select = document.getElementById('year-select')
+const yearSelect = document.getElementById('year-select')
 YEARS.forEach(y => {
     const opt = document.createElement('option')
     opt.value = y
     opt.textContent = y
-    select.appendChild(opt)
+    yearSelect.appendChild(opt)
 })
-select.value = YEARS[0]
+yearSelect.value = YEARS[0]
 
 const REGION_CENTERS = {
     'North America':   [-100,  45, 1.3],
@@ -154,15 +169,12 @@ const REGION_CENTERS = {
     'Oceania':         [ 140, -25, 1.3],
 }
 
-const regionSelect = document.getElementById('region-select')
-const countrySelect = document.getElementById('country-select')
-
 function buildCountryOptions(region) {
     const current = countrySelect.value
     countrySelect.innerHTML = '<option value="">All countries</option>'
     const list = region
-        ? (window.allCountries || []).filter(c => isoToRegion[c.iso] === region)
-        : (window.allCountries || [])
+        ? (allCountries || []).filter(c => isoToRegion[c.iso] === region)
+        : (allCountries || [])
     list.forEach(c => {
         const opt = document.createElement('option')
         opt.value = c.iso
@@ -182,11 +194,9 @@ regionSelect.addEventListener('change', e => {
     const s0 = projection.scale()
     if (region && REGION_CENTERS[region]) {
         const [lon, lat, zoom] = REGION_CENTERS[region]
-        const r1 = [-lon, -lat]
-        const s1 = initScale * zoom
         d3.transition().duration(900).tween('rotate', () => {
-            const ri = d3.interpolate(r0, r1)
-            const si = d3.interpolate(s0, s1)
+            const ri = d3.interpolate(r0, [-lon, -lat])
+            const si = d3.interpolate(s0, initScale * zoom)
             return t => { projection.rotate(ri(t)).scale(si(t)); updateGlobe() }
         })
     } else {
@@ -218,7 +228,7 @@ function selectCountry(geo, name) {
     countryPaths.classed('country--faded', d => geo ? d.properties.ISO_A3 !== geo : false)
     const panel = d3.select('#panel')
     if (!geo) {
-        panel.html('<p id="info-desc">Click a country to see its value.</p>')
+        panel.html('<div class="pie-wrap"><p id="info-desc">Click a country to see its value.</p></div>')
         return
     }
     const feature = geojson.features.find(f => f.properties.ISO_A3 === geo)
@@ -253,14 +263,14 @@ async function loadYear(year) {
 
     countryPaths.attr('fill', d => {
         const val = currentData.get(d.properties.ISO_A3)
-        return val !== undefined ? colorScale(val) : '#c8c4bc'
+        return val !== undefined ? colorScale(val) : css('--no-data')
     })
 
     renderLegend(domain)
 
-    if (!window.allCountries) {
-        window.allCountries = geojson.features
-            .filter(f => currentData.has(f.properties.ISO_A3))
+    if (!allCountries) {
+        allCountries = geojson.features
+            .filter(f => isoToRegion[f.properties.ISO_A3])
             .map(f => ({ iso: f.properties.ISO_A3, name: f.properties.ADMIN }))
             .sort((a, b) => a.name.localeCompare(b.name))
         buildCountryOptions(regionSelect.value)
@@ -290,21 +300,24 @@ function renderPanel(geo, name) {
     const panel = d3.select('#panel')
     panel.html(`<p class="panel-country">${name}</p>`)
 
-    if (val !== undefined) {
-        panel.append('p').attr('class', 'panel-empty').text(`${val.toFixed(1)}% of manufactured exports`)
+    if (val === undefined) {
+        panel.append('div').attr('class', 'pie-wrap')
+            .append('p').attr('class', 'panel-empty').text('No data available')
+        return
     }
 
-    const yearData = breakdown[geo]?.[select.value]
+    panel.append('p').attr('class', 'panel-empty').text(`${val.toFixed(1)}% of manufactured exports`)
+
+    const yearData = breakdown[geo]?.[yearSelect.value]
     const slices = yearData
         ? Object.entries(yearData).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value)
         : []
 
     if (!slices.length) {
-        panel.append('p').attr('class', 'panel-empty').text('No breakdown data available')
+        panel.append('div').attr('class', 'pie-wrap')
+            .append('p').attr('class', 'panel-empty').text('No data available')
         return
     }
-
-    const catColors = ['#f472b6','#fb923c','#facc15','#4ade80','#60a5fa','#c084fc','#f87171','#34d399','#a78bfa']
 
     const total = d3.sum(slices, d => d.value)
     const totalW = panel.node().clientWidth || 280
@@ -331,7 +344,7 @@ function renderPanel(geo, name) {
         .enter().append('path')
         .attr('d', arc)
         .attr('fill', (d, i) => catColors[i])
-        .attr('stroke', '#f5f3ef')
+        .style('stroke', 'var(--surface)')
         .attr('stroke-width', 1.5)
 
     const labels = pieData
@@ -374,8 +387,8 @@ function renderPanel(geo, name) {
             .attr('y', y3)
             .attr('text-anchor', right ? 'start' : 'end')
             .attr('dominant-baseline', 'middle')
-            .style('font-size', '0.6rem')
-            .style('fill', '#444')
+            .style('font-size', 'var(--text-xs)')
+            .style('fill', 'var(--text-secondary)')
             .text(`${pct}%`)
     })
 
@@ -388,4 +401,4 @@ function renderPanel(geo, name) {
 }
 
 await loadYear(YEARS[0])
-select.addEventListener('change', e => loadYear(e.target.value))
+yearSelect.addEventListener('change', e => loadYear(e.target.value))
