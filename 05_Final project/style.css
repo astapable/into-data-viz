@@ -73,7 +73,11 @@ ul {
 }
 
 .detail-chart {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     padding: 1.5rem;
+    min-height: 0;
 }
 
 #sidebar-title {
@@ -198,8 +202,9 @@ ul {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    justify-content: space-between;
     min-height: 0;
+    overflow: hidden;
 }
 
 #info-desc {
@@ -212,6 +217,7 @@ ul {
     font-size: 0.875rem;
     font-weight: 600;
     color: #1a1a1a;
+    margin-bottom: 0.5rem;
 }
 
 .panel-empty {
@@ -219,11 +225,17 @@ ul {
     color: #999;
 }
 
-.pie-legend {
+.pie-wrap {
+    flex: 1;
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin-top: 0.75rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.pie-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.3rem 0.5rem;
 }
 
 .pie-legend-item {
@@ -278,8 +290,9 @@ ul {
 }
 
 .country:hover { opacity: 0.75; }
-.country--selected { stroke: #1a1a1a !important; stroke-width: 2 !important; }
+.country--selected { stroke: #fff !important; stroke-width: 2 !important; filter: brightness(1.15); }
 .country--dimmed { opacity: 0.15; }
+.country--faded { opacity: 0.4; }
 
 #controls {
     position: absolute;

@@ -42,7 +42,7 @@ const isoToRegion = {}
 for (const [region, isos] of Object.entries(REGIONS))
     for (const iso of isos) isoToRegion[iso] = region
 
-const colors = ['#fce7f3', '#f9a8d4', '#f472b6', '#ec4899', '#be185d']
+const colors = ['#fbcfe8', '#f9a8d4', '#f472b6', '#db2777', '#831843']
 let selectedCountry = null
 let currentData = null
 
@@ -185,10 +185,22 @@ countrySelect.addEventListener('change', e => {
 function selectCountry(geo, name) {
     selectedCountry = geo ? { geo, name } : null
     countryPaths.classed('country--selected', d => d.properties.ISO_A3 === geo)
+    countryPaths.classed('country--faded', d => geo ? d.properties.ISO_A3 !== geo : false)
     const panel = d3.select('#panel')
     if (!geo) {
         panel.html('<p id="info-desc">Click a country to see its value.</p>')
         return
+    }
+    const feature = geojson.features.find(f => f.properties.ISO_A3 === geo)
+    if (feature) {
+        const [lon, lat] = d3.geoCentroid(feature)
+        const r0 = projection.rotate()
+        const s0 = projection.scale()
+        d3.transition().duration(900).tween('rotate', () => {
+            const ri = d3.interpolate(r0, [-lon, -lat])
+            const si = d3.interpolate(s0, initScale * 2)
+            return t => { projection.rotate(ri(t)).scale(si(t)); updateGlobe() }
+        })
     }
     renderPanel(geo, name)
 }
@@ -240,9 +252,9 @@ function renderLegend(domain) {
         `${domain[3].toFixed(1)} – ${domain[4].toFixed(1)}%`,
         `> ${domain[4].toFixed(1)}%`
     ]
-    document.getElementById('legend').innerHTML = labels.map((label, i) => `
+    document.getElementById('legend').innerHTML = [...labels].reverse().map((label, i) => `
         <div class="legend-item">
-            <span class="legend-swatch" style="background:${colors[i]}"></span>
+            <span class="legend-swatch" style="background:${colors[labels.length - 1 - i]}"></span>
             <span class="legend-label">${label}</span>
         </div>
     `).join('')
@@ -271,20 +283,23 @@ function renderPanel(geo, name) {
 
     const total = d3.sum(slices, d => d.value)
     const totalW = panel.node().clientWidth || 280
-    const radius = Math.min(totalW / 2, 100)
+    const radius = Math.min(totalW * 0.35, 110)
+    const labelR = radius * 1.32
 
     const pie = d3.pie().value(d => d.value).sort(null)
     const arc = d3.arc().innerRadius(radius * 0.5).outerRadius(radius)
-    const labelArc = d3.arc().innerRadius(radius * 0.72).outerRadius(radius * 0.72)
 
     const pieData = pie(slices)
+    const svgH = labelR * 2 + 24
 
-    const svgEl = panel.append('svg')
+    const svgEl = panel.append('div').attr('class', 'pie-wrap').append('svg')
         .attr('width', totalW)
-        .attr('height', radius * 2 + 10)
+        .attr('height', svgH)
+        .style('display', 'block')
+        .style('margin', '0 auto')
 
     const g = svgEl.append('g')
-        .attr('transform', `translate(${totalW / 2}, ${radius + 5})`)
+        .attr('transform', `translate(${totalW / 2}, ${svgH / 2})`)
 
     g.selectAll('path')
         .data(pieData)
@@ -294,22 +309,56 @@ function renderPanel(geo, name) {
         .attr('stroke', '#f5f3ef')
         .attr('stroke-width', 1.5)
 
-    g.selectAll('text')
-        .data(pieData)
-        .enter().append('text')
-        .attr('transform', d => `translate(${labelArc.centroid(d)})`)
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'middle')
-        .style('font-size', '0.6rem')
-        .style('fill', '#1a1a1a')
-        .style('pointer-events', 'none')
-        .text(d => (d.endAngle - d.startAngle) > 0.35 ? `${(d.value / total * 100).toFixed(0)}%` : '')
+    const labels = pieData
+        .map((d, i) => {
+            const mid = (d.startAngle + d.endAngle) / 2
+            const pct = Math.round(d.value / total * 100)
+            const y2 = -Math.cos(mid) * labelR
+            return {
+                i, pct,
+                x1: Math.sin(mid) * (radius + 2),
+                y1: -Math.cos(mid) * (radius + 2),
+                x2: Math.sin(mid) * labelR,
+                y2, y3: y2,
+                right: Math.sin(mid) >= 0
+            }
+        })
+        .filter(l => l.pct > 0)
+
+    const x3R = totalW / 2 - 25
+    const x3L = -(totalW / 2 - 25)
+    const minGap = 11
+    for (const side of [true, false]) {
+        const group = labels.filter(l => l.right === side).sort((a, b) => a.y3 - b.y3)
+        for (let k = 1; k < group.length; k++)
+            if (group[k].y3 - group[k - 1].y3 < minGap) group[k].y3 = group[k - 1].y3 + minGap
+        for (let k = group.length - 2; k >= 0; k--)
+            if (group[k + 1].y3 - group[k].y3 < minGap) group[k].y3 = group[k + 1].y3 - minGap
+    }
+
+    labels.forEach(({ i, x1, y1, x2, y2, y3, right, pct }) => {
+        const x3 = right ? x3R : x3L
+        g.append('polyline')
+            .attr('points', `${x1},${y1} ${x2},${y2} ${x3},${y3}`)
+            .attr('fill', 'none')
+            .attr('stroke', catColors[i])
+            .attr('stroke-width', 0.9)
+            .attr('opacity', 0.8)
+        g.append('text')
+            .attr('x', x3 + (right ? 3 : -3))
+            .attr('y', y3)
+            .attr('text-anchor', right ? 'start' : 'end')
+            .attr('dominant-baseline', 'middle')
+            .style('font-size', '0.6rem')
+            .style('fill', '#444')
+            .text(`${pct}%`)
+    })
 
     const legend = panel.append('div').attr('class', 'pie-legend')
     slices.forEach((d, i) => {
         const item = legend.append('div').attr('class', 'pie-legend-item')
         item.append('span').attr('class', 'pie-legend-swatch').style('background', catColors[i])
-        item.append('span').attr('class', 'pie-legend-label').text(`${d.label} — ${(d.value / total * 100).toFixed(1)}%`)
+        item.append('span').attr('class', 'pie-legend-label').text(d.label)
     })
 }
 
