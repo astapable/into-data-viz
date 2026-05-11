@@ -93,15 +93,11 @@ ul {
     line-height: 1.5;
 }
 
-#source-row {
+#title-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
-}
-
-#source-label {
-    font-size: 0.75rem;
-    color: #999;
 }
 
 #source-link {

@@ -86,6 +86,12 @@ countryPaths
     .on('click', (event, d) => {
         const geo = d.properties.ISO_A3
         const name = d.properties.ADMIN
+        const region = isoToRegion[geo] || ''
+        if (regionSelect.value !== region) {
+            regionSelect.value = region
+            buildCountryOptions(region)
+            countryPaths.classed('country--dimmed', dd => region ? isoToRegion[dd.properties.ISO_A3] !== region : false)
+        }
         countrySelect.value = geo
         selectCountry(geo, name)
     })
@@ -151,10 +157,26 @@ const REGION_CENTERS = {
 const regionSelect = document.getElementById('region-select')
 const countrySelect = document.getElementById('country-select')
 
+function buildCountryOptions(region) {
+    const current = countrySelect.value
+    countrySelect.innerHTML = '<option value="">All countries</option>'
+    const list = region
+        ? (window.allCountries || []).filter(c => isoToRegion[c.iso] === region)
+        : (window.allCountries || [])
+    list.forEach(c => {
+        const opt = document.createElement('option')
+        opt.value = c.iso
+        opt.textContent = c.name
+        countrySelect.appendChild(opt)
+    })
+    countrySelect.value = current
+}
+
 regionSelect.addEventListener('change', e => {
     const region = e.target.value
     countrySelect.value = ''
     selectCountry('', '')
+    buildCountryOptions(region)
     countryPaths.classed('country--dimmed', d => region ? isoToRegion[d.properties.ISO_A3] !== region : false)
     const r0 = projection.rotate()
     const s0 = projection.scale()
@@ -179,6 +201,14 @@ regionSelect.addEventListener('change', e => {
 countrySelect.addEventListener('change', e => {
     const geo = e.target.value
     const name = geojson.features.find(f => f.properties.ISO_A3 === geo)?.properties.ADMIN || ''
+    if (geo) {
+        const region = isoToRegion[geo] || ''
+        if (regionSelect.value !== region) {
+            regionSelect.value = region
+            buildCountryOptions(region)
+            countryPaths.classed('country--dimmed', d => region ? isoToRegion[d.properties.ISO_A3] !== region : false)
+        }
+    }
     selectCountry(geo, name)
 })
 
@@ -228,17 +258,12 @@ async function loadYear(year) {
 
     renderLegend(domain)
 
-    if (countrySelect.options.length === 1) {
-        geojson.features
+    if (!window.allCountries) {
+        window.allCountries = geojson.features
             .filter(f => currentData.has(f.properties.ISO_A3))
             .map(f => ({ iso: f.properties.ISO_A3, name: f.properties.ADMIN }))
             .sort((a, b) => a.name.localeCompare(b.name))
-            .forEach(c => {
-                const opt = document.createElement('option')
-                opt.value = c.iso
-                opt.textContent = c.name
-                countrySelect.appendChild(opt)
-            })
+        buildCountryOptions(regionSelect.value)
     }
 
     if (selectedCountry) renderPanel(selectedCountry.geo, selectedCountry.name)
