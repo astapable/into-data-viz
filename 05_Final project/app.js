@@ -134,6 +134,20 @@ YEARS.forEach(y => {
 })
 select.value = YEARS[0]
 
+const REGION_CENTERS = {
+    'North America':   [-100,  45],
+    'Central America': [ -85,  15],
+    'South America':   [ -60, -15],
+    'Europe':          [  15,  52],
+    'Middle East':     [  45,  30],
+    'Central Asia':    [  60,  45],
+    'South Asia':      [  75,  25],
+    'East Asia':       [ 115,  35],
+    'Southeast Asia':  [ 115,   5],
+    'Africa':          [  20,   0],
+    'Oceania':         [ 140, -25],
+}
+
 const regionSelect = document.getElementById('region-select')
 const countrySelect = document.getElementById('country-select')
 
@@ -142,6 +156,15 @@ regionSelect.addEventListener('change', e => {
     countrySelect.value = ''
     selectCountry('', '')
     countryPaths.classed('country--dimmed', d => region ? isoToRegion[d.properties.ISO_A3] !== region : false)
+    if (region && REGION_CENTERS[region]) {
+        const [lon, lat] = REGION_CENTERS[region]
+        const r0 = projection.rotate()
+        const r1 = [-lon, -lat]
+        d3.transition().duration(900).tween('rotate', () => {
+            const interp = d3.interpolate(r0, r1)
+            return t => { projection.rotate(interp(t)); updateGlobe() }
+        })
+    }
 })
 
 countrySelect.addEventListener('change', e => {
