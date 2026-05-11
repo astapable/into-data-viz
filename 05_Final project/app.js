@@ -135,17 +135,17 @@ YEARS.forEach(y => {
 select.value = YEARS[0]
 
 const REGION_CENTERS = {
-    'North America':   [-100,  45],
-    'Central America': [ -85,  15],
-    'South America':   [ -60, -15],
-    'Europe':          [  15,  52],
-    'Middle East':     [  45,  30],
-    'Central Asia':    [  60,  45],
-    'South Asia':      [  75,  25],
-    'East Asia':       [ 115,  35],
-    'Southeast Asia':  [ 115,   5],
-    'Africa':          [  20,   0],
-    'Oceania':         [ 140, -25],
+    'North America':   [-100,  45, 1.3],
+    'Central America': [ -85,  15, 2.5],
+    'South America':   [ -60, -15, 1.5],
+    'Europe':          [  15,  52, 2.0],
+    'Middle East':     [  45,  30, 1.8],
+    'Central Asia':    [  60,  45, 1.8],
+    'South Asia':      [  75,  25, 1.8],
+    'East Asia':       [ 115,  35, 1.6],
+    'Southeast Asia':  [ 115,   5, 1.8],
+    'Africa':          [  20,   0, 1.4],
+    'Oceania':         [ 140, -25, 1.3],
 }
 
 const regionSelect = document.getElementById('region-select')
@@ -156,13 +156,22 @@ regionSelect.addEventListener('change', e => {
     countrySelect.value = ''
     selectCountry('', '')
     countryPaths.classed('country--dimmed', d => region ? isoToRegion[d.properties.ISO_A3] !== region : false)
+    const r0 = projection.rotate()
+    const s0 = projection.scale()
     if (region && REGION_CENTERS[region]) {
-        const [lon, lat] = REGION_CENTERS[region]
-        const r0 = projection.rotate()
+        const [lon, lat, zoom] = REGION_CENTERS[region]
         const r1 = [-lon, -lat]
+        const s1 = initScale * zoom
         d3.transition().duration(900).tween('rotate', () => {
-            const interp = d3.interpolate(r0, r1)
-            return t => { projection.rotate(interp(t)); updateGlobe() }
+            const ri = d3.interpolate(r0, r1)
+            const si = d3.interpolate(s0, s1)
+            return t => { projection.rotate(ri(t)).scale(si(t)); updateGlobe() }
+        })
+    } else {
+        d3.transition().duration(900).tween('rotate', () => {
+            const ri = d3.interpolate(r0, [0, -20])
+            const si = d3.interpolate(s0, initScale)
+            return t => { projection.rotate(ri(t)).scale(si(t)); updateGlobe() }
         })
     }
 })
