@@ -269,31 +269,47 @@ function renderPanel(geo, name) {
 
     const catColors = ['#f472b6','#fb923c','#facc15','#4ade80','#60a5fa','#c084fc','#f87171','#34d399','#a78bfa']
 
+    const total = d3.sum(slices, d => d.value)
     const totalW = panel.node().clientWidth || 280
     const radius = Math.min(totalW / 2, 100)
 
     const pie = d3.pie().value(d => d.value).sort(null)
     const arc = d3.arc().innerRadius(radius * 0.5).outerRadius(radius)
+    const labelArc = d3.arc().innerRadius(radius * 0.72).outerRadius(radius * 0.72)
+
+    const pieData = pie(slices)
 
     const svgEl = panel.append('svg')
         .attr('width', totalW)
         .attr('height', radius * 2 + 10)
 
-    svgEl.append('g')
+    const g = svgEl.append('g')
         .attr('transform', `translate(${totalW / 2}, ${radius + 5})`)
-        .selectAll('path')
-        .data(pie(slices))
+
+    g.selectAll('path')
+        .data(pieData)
         .enter().append('path')
         .attr('d', arc)
         .attr('fill', (d, i) => catColors[i])
         .attr('stroke', '#f5f3ef')
         .attr('stroke-width', 1.5)
 
+    g.selectAll('text')
+        .data(pieData)
+        .enter().append('text')
+        .attr('transform', d => `translate(${labelArc.centroid(d)})`)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .style('font-size', '0.6rem')
+        .style('fill', '#1a1a1a')
+        .style('pointer-events', 'none')
+        .text(d => (d.endAngle - d.startAngle) > 0.35 ? `${(d.value / total * 100).toFixed(0)}%` : '')
+
     const legend = panel.append('div').attr('class', 'pie-legend')
     slices.forEach((d, i) => {
         const item = legend.append('div').attr('class', 'pie-legend-item')
         item.append('span').attr('class', 'pie-legend-swatch').style('background', catColors[i])
-        item.append('span').attr('class', 'pie-legend-label').text(d.label)
+        item.append('span').attr('class', 'pie-legend-label').text(`${d.label} — ${(d.value / total * 100).toFixed(1)}%`)
     })
 }
 
