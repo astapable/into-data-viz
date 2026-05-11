@@ -10,9 +10,9 @@
     </head>
     <body>
         <main id="wrapper">
-            <aside id="sidebar">
-                <div class="sidebar-card">
-                    <div id="sidebar-header">
+            <section id="sidebar">
+                <section class="sidebar-card">
+                    <header id="sidebar-header">
                         <h1 id="sidebar-title">Global High-Tech Exports</h1>
                         <p id="sidebar-subtitle">High-technology exports as a share of manufactured exports, by country.</p>
                         <div id="source-row">
@@ -23,52 +23,47 @@
                                 </svg>
                             </a>
                         </div>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <p class="section-label">Year</p>
-                    <div class="select-wrapper">
-                        <select id="year-select"></select>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <p class="section-label">Region</p>
-                    <div class="select-wrapper">
-                        <select id="region-select">
-                            <option value="">All regions</option>
-                            <option>North America</option>
-                            <option>Central America</option>
-                            <option>South America</option>
-                            <option>Europe</option>
-                            <option>Middle East</option>
-                            <option>Central Asia</option>
-                            <option>South Asia</option>
-                            <option>East Asia</option>
-                            <option>Southeast Asia</option>
-                            <option>Africa</option>
-                            <option>Oceania</option>
-                        </select>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <p class="section-label">Country</p>
-                    <div class="select-wrapper">
-                        <select id="country-select">
-                            <option value="">All countries</option>
-                        </select>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <div id="panel">
-                        <p id="info-desc">Click a country to see its value.</p>
-                    </div>
-                </div>
-            </aside>
-            <div id="map">
+                    </header>
+                    <ul>
+                        <li class="dropdown-wrapper">
+                            <div class="select-wrapper">
+                                <select id="year-select"></select>
+                            </div> 
+                        </li>
+                        <li class="dropdown-wrapper">
+                            <div class="select-wrapper">
+                                <select id="region-select">
+                                    <option value="">All regions</option>
+                                    <option>North America</option>
+                                    <option>Central America</option>
+                                    <option>South America</option>
+                                    <option>Europe</option>
+                                    <option>Middle East</option>
+                                    <option>Central Asia</option>
+                                    <option>South Asia</option>
+                                    <option>East Asia</option>
+                                    <option>Southeast Asia</option>
+                                    <option>Africa</option>
+                                    <option>Oceania</option>
+                                </select>
+                            </div>
+                        </li>
+                        <li class="dropdown-wrapper">
+                            <div class="select-wrapper">
+                                <select id="country-select">
+                                    <option value="">All countries</option>
+                                </select>
+                            </div>
+                        </li>
+                    </ul>
+                     <div class="detail-chart">
+                         <div id="panel">
+                             <p id="info-desc">Click a country to see its value.</p>
+                         </div>
+                     </div>
+                </section>
+            </section>
+            <section id="map">
                 <div id="controls">
                     <button id="zoom-in" aria-label="Zoom in">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -94,7 +89,7 @@
                 <div id="legend-box">
                     <div id="legend"></div>
                 </div>
-            </div>
+            </section>
             <div id="tooltip"></div>
         </main>
     </body>

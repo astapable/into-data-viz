@@ -226,40 +226,43 @@ function renderPanel(geo, name) {
     }
 
     const yearData = breakdown[geo]?.[select.value]
-    const bars = yearData
+    const slices = yearData
         ? Object.entries(yearData).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value)
         : []
 
-    if (!bars.length) {
+    if (!slices.length) {
         panel.append('p').attr('class', 'panel-empty').text('No breakdown data available')
         return
     }
 
+    const catColors = ['#f472b6','#fb923c','#facc15','#4ade80','#60a5fa','#c084fc','#f87171','#34d399','#a78bfa']
+
     const totalW = panel.node().clientWidth || 280
-    const margin = { top: 6, right: 56, bottom: 4, left: 96 }
-    const innerW = totalW - margin.left - margin.right
-    const barH = 16, barGap = 8
-    const innerH = bars.length * (barH + barGap) - barGap
+    const radius = Math.min(totalW / 2, 100)
 
-    const x = d3.scaleLinear().domain([0, d3.max(bars, d => d.value)]).range([0, innerW]).nice()
+    const pie = d3.pie().value(d => d.value).sort(null)
+    const arc = d3.arc().innerRadius(radius * 0.5).outerRadius(radius)
 
-    const svgEl = panel.append('svg').attr('width', totalW).attr('height', innerH + margin.top + margin.bottom)
-    const g = svgEl.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+    const svgEl = panel.append('svg')
+        .attr('width', totalW)
+        .attr('height', radius * 2 + 10)
 
-    const rows = g.selectAll('g').data(bars).enter().append('g')
-        .attr('transform', (d, i) => `translate(0,${i * (barH + barGap)})`)
+    svgEl.append('g')
+        .attr('transform', `translate(${totalW / 2}, ${radius + 5})`)
+        .selectAll('path')
+        .data(pie(slices))
+        .enter().append('path')
+        .attr('d', arc)
+        .attr('fill', (d, i) => catColors[i])
+        .attr('stroke', '#f5f3ef')
+        .attr('stroke-width', 1.5)
 
-    rows.append('text')
-        .attr('x', -8).attr('y', barH / 2).attr('dy', '0.35em').attr('text-anchor', 'end')
-        .text(d => d.label).attr('fill', '#666').attr('font-size', '11px')
-
-    rows.append('rect')
-        .attr('width', d => x(d.value)).attr('height', barH).attr('rx', 3).attr('fill', '#ec4899')
-
-    rows.append('text')
-        .attr('x', d => x(d.value) + 6).attr('y', barH / 2).attr('dy', '0.35em')
-        .text(d => d.value >= 1000 ? (d.value / 1000).toFixed(0) + 'k' : d.value.toFixed(0))
-        .attr('fill', '#999').attr('font-size', '10px')
+    const legend = panel.append('div').attr('class', 'pie-legend')
+    slices.forEach((d, i) => {
+        const item = legend.append('div').attr('class', 'pie-legend-item')
+        item.append('span').attr('class', 'pie-legend-swatch').style('background', catColors[i])
+        item.append('span').attr('class', 'pie-legend-label').text(d.label)
+    })
 }
 
 await loadYear(YEARS[0])
