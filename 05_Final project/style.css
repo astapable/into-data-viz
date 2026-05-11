@@ -159,6 +159,27 @@ ul {
 #region-select:focus,
 #country-select:focus { outline: none; }
 
+#author-box {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 10;
+    background: #f5f3ef;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 0.625rem;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+    color: #1a1a1a;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+#author-box:hover {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+    color: #fff;
+}
+
 #legend-box {
     position: absolute;
     bottom: 1.25rem;
