@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>EU High-Technology Exports</title>
+        <title>Global High-Technology Exports</title>
         <link rel="stylesheet" href="./style.css"/>
         <script defer src="https://unpkg.com/d3"></script>
         <script defer type="module" src="./app.js"></script>
@@ -13,11 +13,11 @@
             <aside id="sidebar">
                 <div class="sidebar-card">
                     <div id="sidebar-header">
-                        <h1 id="sidebar-title">EU High-Tech Exports</h1>
-                        <p id="sidebar-subtitle">The share of high-technology products within each EU country's total exports.</p>
+                        <h1 id="sidebar-title">Global High-Tech Exports</h1>
+                        <p id="sidebar-subtitle">High-technology exports as a share of manufactured exports, by country.</p>
                         <div id="source-row">
-                            <span id="source-label">Source: Eurostat</span>
-                            <a href="https://ec.europa.eu/eurostat/databrowser/view/htec_si_exp4" target="_blank" id="source-link" aria-label="Source">
+                            <span id="source-label">Source: World Bank</span>
+                            <a href="https://data.worldbank.org/indicator/TX.VAL.TECH.MF.ZS" target="_blank" id="source-link" aria-label="Source">
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M2 10L10 2M10 2H5M10 2V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
@@ -34,6 +34,26 @@
 
                     <div class="divider"></div>
 
+                    <p class="section-label">Region</p>
+                    <div class="select-wrapper">
+                        <select id="region-select">
+                            <option value="">All regions</option>
+                            <option>North America</option>
+                            <option>Central America</option>
+                            <option>South America</option>
+                            <option>Europe</option>
+                            <option>Middle East</option>
+                            <option>Central Asia</option>
+                            <option>South Asia</option>
+                            <option>East Asia</option>
+                            <option>Southeast Asia</option>
+                            <option>Africa</option>
+                            <option>Oceania</option>
+                        </select>
+                    </div>
+
+                    <div class="divider"></div>
+
                     <p class="section-label">Country</p>
                     <div class="select-wrapper">
                         <select id="country-select">
@@ -44,15 +64,32 @@
                     <div class="divider"></div>
 
                     <div id="panel">
-                        <p id="info-desc">Click a country to see its breakdown by product group.</p>
+                        <p id="info-desc">Click a country to see its value.</p>
                     </div>
                 </div>
             </aside>
             <div id="map">
                 <div id="controls">
-                    <button id="zoom-in">+</button>
-                    <button id="zoom-out">−</button>
-                    <button id="reset">↺</button>
+                    <button id="zoom-in" aria-label="Zoom in">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 6H8M6 4V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button id="zoom-out" aria-label="Zoom out">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M4 6H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button id="reset" aria-label="Reset view">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.5 7A4.5 4.5 0 1 0 3.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2.5 2.5V4.5H4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
                 </div>
                 <div id="legend-box">
                     <div id="legend"></div>

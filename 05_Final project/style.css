@@ -41,7 +41,7 @@ body {
     top: 1rem;
     left: 1rem;
     bottom: 1rem;
-    width: 360px;
+    width: 26.25rem;
     z-index: 10;
     overflow-y: auto;
 }
@@ -133,6 +133,7 @@ body {
 }
 
 #year-select,
+#region-select,
 #country-select {
     width: 100%;
     background: rgba(0,0,0,0.04);
@@ -147,6 +148,7 @@ body {
 }
 
 #year-select:focus,
+#region-select:focus,
 #country-select:focus { outline: none; }
 
 #legend-box {
@@ -267,11 +269,11 @@ body {
 
 .country:hover { opacity: 0.75; }
 .country--selected { stroke: #1a1a1a !important; stroke-width: 2 !important; }
+.country--dimmed { opacity: 0.15; }
 
 #controls {
     position: absolute;
     bottom: 1.25rem;
-    left: calc((100% + 1rem + 360px) / 2);
     transform: translateX(-50%);
     z-index: 10;
     display: flex;
